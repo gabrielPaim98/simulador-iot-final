@@ -1,6 +1,7 @@
 package br.ucsal;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -24,7 +25,9 @@ public class Caminhao {
     private STATUS_CAMINHAO status;
     private int idContainer;
     private Socket centralSocket;
+    private Socket containerSocket;
     private final Scanner scanner = new Scanner(System.in);
+    private ServerSocket socket;
 
     public Caminhao(int id) {
         this.id = id;
@@ -46,11 +49,14 @@ public class Caminhao {
         // TODO: Conecta a central
 
         try {
+            this.socket = new ServerSocket(0, 1);
+            System.out.println("Caminhão executando em: " + this.getIpAddress() + ":" + this.getPort());
+
             System.out.println("Informe o endereço e porta da central");
             String centralAddress = scanner.next();
             String centralIp = centralAddress.split(":")[0];
             int centralPort = Integer.parseInt(centralAddress.split(":")[1]);
-            centralSocket = new Socket(centralAddress, centralPort);
+            centralSocket = new Socket(centralIp, centralPort);
             sendIsFreeToCentral();
         } catch (Exception e) {
             System.out.println("Erro ao conectar com a central");
@@ -88,6 +94,15 @@ public class Caminhao {
                 System.out.println("Nova mensagem da central: " + mensagem);
                 if (mensagem.contains("COLETAR")) {
                     this.idContainer = Integer.parseInt(mensagem.split(" ")[1]);
+
+
+                    System.out.println("Informe o endereço do container " + this.idContainer + ":");
+                    String containerAddress = scanner.next();
+                    String containerIp = containerAddress.split(":")[0];
+                    int containerPort = Integer.parseInt(containerAddress.split(":")[1]);
+                    centralSocket = new Socket(containerIp, containerPort);
+
+
                     this.status = STATUS_CAMINHAO.OCUPADO;
                     Thread.sleep(Util.generateRandomTime());
                     sendArrivedAtContainer();
@@ -106,9 +121,14 @@ public class Caminhao {
         // gerar tempo para voltar a central (5 a 20 segs)
 
         try {
-            System.out.println("Informando a central que chegou ao container");
+//            System.out.println("Informando a central que chegou ao container");
+//            String message = "CHEGUEI_CONTAINER " + this.idContainer;
+//            PrintWriter pw = new PrintWriter(this.centralSocket.getOutputStream(), true);
+
+
+            System.out.println("Informando a container que chegou");
             String message = "CHEGUEI_CONTAINER " + this.idContainer;
-            PrintWriter pw = new PrintWriter(this.centralSocket.getOutputStream(), true);
+            PrintWriter pw = new PrintWriter(this.containerSocket.getOutputStream(), true);
             pw.println(message);
             pw.flush();
             Thread.sleep(Util.generateRandomTime());
@@ -131,6 +151,7 @@ public class Caminhao {
             pw.println(message);
             pw.flush();
             this.status = STATUS_CAMINHAO.LIVRE;
+            this.containerSocket = null;
             listenCentral();
         } catch (Exception e) {
             System.out.println("Erro ao comunicar central que voltou");
@@ -142,6 +163,14 @@ public class Caminhao {
         PrintWriter pw = new PrintWriter(out, true);
         pw.println(message);
         pw.flush();
+    }
+
+    private String getIpAddress() {
+        return this.socket.getInetAddress().getHostAddress();
+    }
+
+    public int getPort() {
+        return this.socket.getLocalPort();
     }
 }
 
