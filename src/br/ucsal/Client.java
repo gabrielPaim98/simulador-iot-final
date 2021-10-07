@@ -14,10 +14,10 @@ cli para conectar aos dispositivos
 nomeD1 CONECTAR nomeD2
 escuta atualizações dos dispositivos conectados*/
 public class Client {
-    private Scanner scanner = new Scanner(System.in);
-    private static String name = "Computador";
+    private final Scanner scanner = new Scanner(System.in);
+    private static final String name = "Computador";
     private static List<Dispositivo> availableClientList;
-    private static List<Dispositivo> connectedClientList = new ArrayList<Dispositivo>();
+    private static final List<Dispositivo> connectedClientList = new ArrayList<Dispositivo>();
 
     public Client() throws Exception {
         this.start();
@@ -31,13 +31,6 @@ public class Client {
         }
 
         new Client();
-
-//		String serverAddress = args[0];
-//		Integer serverPort = Integer.parseInt(args[1]);
-//		System.out.println("Conectando ao servidor: " + serverAddress + ":" + serverPort);
-//		Client client = new Client(InetAddress.getByName(serverAddress), serverPort);
-//		System.out.println("Conectado ao servidor");
-//		client.start();
     }
 
     private void start() {
