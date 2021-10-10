@@ -11,12 +11,15 @@ public class Dispositivo {
     private int refreshTime;
     private int port;
     private Socket socket;
+    private DispositivoType type;
+    private int id;
 
     static List<Dispositivo> listFromFile(String fileContent) {
         List<Dispositivo> dispositivoList = new ArrayList<Dispositivo>();
         String[] dispositvosString = fileContent.split("\\r?\\n");
         for (int i = 0; i < dispositvosString.length; i++) {
-            dispositivoList.add(new Dispositivo(dispositvosString[i]));
+            Dispositivo dispositivo = new Dispositivo(dispositvosString[i]);
+            dispositivoList.add(dispositivo);
         }
         return dispositivoList;
     }
@@ -26,12 +29,36 @@ public class Dispositivo {
         serviceName = nameSplit[0];
         ipAddress = nameSplit[1];
         port = Integer.parseInt(nameSplit[2]);
+        if (serviceName.contains("container")) {
+            type = DispositivoType.CONTAINER;
+            id = Integer.parseInt(serviceName.split("_")[1]);
+        } else if (serviceName.contains("central")) {
+            type = DispositivoType.CENTRAL;
+        } else {
+            type = DispositivoType.CAMINHAO;
+        }
     }
 
     public Dispositivo(String serviceName, String ipAddress, int port) {
         this.serviceName = serviceName;
         this.ipAddress = ipAddress;
         this.port = port;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public DispositivoType getType() {
+        return type;
+    }
+
+    public void setType(DispositivoType type) {
+        this.type = type;
     }
 
     public String getServiceName() {
@@ -84,7 +111,11 @@ public class Dispositivo {
 
     @Override
     public String toString() {
-        return serviceName + " " + ipAddress + " " + port;
+        return serviceName + " " + ipAddress + ":" + port + " | type=" + type;
     }
 
+}
+
+enum DispositivoType {
+    CENTRAL, CONTAINER, CAMINHAO
 }
